@@ -1028,11 +1028,34 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
     }
 
     function toCsv(rows) {
-      const headers = ['Work Code','Project Title','Name','GT Email','Filament Ownership','Studio','Status','Printer Type','Printer Number','AMS Track','Submitted At','Notes'];
+      const headers = ['Work Code','Submission Status','Task Index','Task Title','Task Status','Name','GT Email','Filament Ownership','Studio','Printer Type','Printer Number','AMS Track','Estimated Print Time','Submission Notes','Task Notes','Submitted At'];
       const escape = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
-      const lines = rows.map((row) => [
-        row.id,row.projectTitle,row.name,row.email,row.filamentOwner,row.studio,row.status,row.printerType,row.printerNumber,row.amsTrack,formatDate(row.submittedAt),row.notes,
-      ].map(escape).join(','));
+      const lines = [];
+
+      rows.forEach((row) => {
+        const tasks = getJobTasks(row);
+        tasks.forEach((task, index) => {
+          lines.push([
+            row.id,
+            row.status,
+            index + 1,
+            task.title || row.projectTitle || '',
+            task.status || row.status || '',
+            row.name,
+            row.email,
+            row.filamentOwner,
+            row.studio,
+            task.printerType || '',
+            task.printerNumber || '',
+            task.amsTrack || '',
+            task.estimatedTime || '',
+            row.notes || '',
+            task.notes || '',
+            formatDate(row.submittedAt),
+          ].map(escape).join(','));
+        });
+      });
+
       return [headers.join(','), ...lines].join('\n');
     }
 
