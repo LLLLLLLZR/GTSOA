@@ -1014,8 +1014,58 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
     }
 
     function machinesInUse(type) {
-      const active = state.jobs.filter(j => j.printerType === type && j.printerNumber && ACTIVE_STATUSES.includes(j.status));
-      return new Set(active.map(j => j.printerNumber)).size;
+      const activeNumbers = [];
+      state.jobs.forEach(job => {
+        getJobTasks(job).forEach(task => {
+          const status = task.status || job.status || 'Submitted';
+          if (task.printerType === type && task.printerNumber && status === 'Printing') {
+            activeNumbers.push(String(task.printerNumber));
+          }
+        });
+      });
+      return new Set(activeNumbers).size;
+    }
+
+    function getAvailablePrinterNumbers(type, currentJobId, currentTaskIndex, currentValue) {
+      const total = type === 'H2D' ? H2D_TOTAL : X1C_TOTAL;
+      const occupied = new Set();
+      state.jobs.forEach(job => {
+        getJobTasks(job).forEach((task, idx) => {
+          const status = task.status || job.status || 'Submitted';
+          const isCurrentTask = job.id === currentJobId && idx === currentTaskIndex;
+          if (!isCurrentTask && task.printerType === type && task.printerNumber && status === 'Printing') {
+            occupied.add(String(task.printerNumber));
+          }
+        });
+      });
+      const options = [];
+      for (let i = 1; i <= total; i += 1) {
+        const value = String(i);
+        if (!occupied.has(value) || value === String(currentValue || '')) {
+          options.push(value);
+        }
+      }
+      return options;
+    }
+
+    function refreshPrinterNumberOptions(jobId, taskIndex, typeSelect) {
+      const card = typeSelect.closest('[data-task-index]');
+      if (!card) return;
+      const numberSelect = card.querySelector('[data-field="printerNumber"]');
+      if (!numberSelect) return;
+      const selectedType = typeSelect.value === 'unassigned-type' ? '' : typeSelect.value;
+      const currentValue = numberSelect.value || '';
+      if (!selectedType) {
+        numberSelect.innerHTML = '<option value="" selected>Unassigned</option>';
+        return;
+      }
+      const nums = getAvailablePrinterNumbers(selectedType, jobId, taskIndex, currentValue);
+      let html = '<option value="">Unassigned</option>';
+      html += nums.map(num => `<option value="${num}" ${String(currentValue) === String(num) ? 'selected' : ''}>${num}</option>`).join('');
+      numberSelect.innerHTML = html;
+      if (currentValue && !nums.includes(String(currentValue))) {
+        numberSelect.value = '';
+      }
     }
 
     function stats() {
@@ -1611,14 +1661,17 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
                     </div>
                     <div class="row-2">
                       <div class="field"><label>Printer Type</label>
-                        <select data-field="printerType">
+                        <select data-field="printerType" onchange="refreshPrinterNumberOptions('${job.id}', ${index}, this)">
                           <option value="unassigned-type" ${!task.printerType?'selected':''}>Unassigned</option>
                           <option value="X1C" ${task.printerType==='X1C'?'selected':''}>X1C</option>
                           <option value="H2D" ${task.printerType==='H2D'?'selected':''}>H2D</option>
                         </select>
                       </div>
                       <div class="field"><label>Printer Number</label>
-                        <input data-field="printerNumber" type="number" min="1" max="${task.printerType === 'H2D' ? H2D_TOTAL : X1C_TOTAL}" value="${escapeHtml(task.printerNumber || '')}" placeholder="${task.printerType === 'H2D' ? `1-${H2D_TOTAL}` : `1-${X1C_TOTAL}`}" />
+                        <select data-field="printerNumber">
+                          <option value="" ${!task.printerNumber ? 'selected' : ''}>Unassigned</option>
+                          ${(task.printerType ? getAvailablePrinterNumbers(task.printerType, job.id, index, task.printerNumber) : []).map(num => `<option value="${num}" ${String(task.printerNumber || '')===String(num)?'selected':''}>${num}</option>`).join('')}
+                        </select>
                       </div>
                     </div>
                     <div class="field"><label>AMS Track</label>
