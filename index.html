@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GT SoA 3D Print Lab</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --text: #0f172a;
+      --muted: #64748b;
+      --muted-2: #94a3b8;
+      --navy: #003057;
+      --navy-dark: #031633;
+      --navy-mid: #08244A;
+      --navy-soft: #31415E;
+      --gold: #B3A369;
+      --gold-border: #E6E0C8;
+      --soft: #F3F6FA;
+      --soft-2: #F6F8FB;
+      --white: #ffffff;
+      --shadow: 0 8px 24px rgba(0, 48, 87, 0.08);
+      --shadow-hero: 0 20px 50px rgba(0, 24, 60, 0.28);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .app {
+      max-width: 448px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 24px 16px 32px;
+    }
+
+    .app-wide {
+      max-width: 1280px;
+    }
+
+    .hidden { display: none !important; }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .topbar-left {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      min-width: 0;
+    }
+
+    .back-btn, .icon-button {
+      width: 42px;
+      height: 42px;
+      border-radius: 16px;
+      border: 1px solid var(--gold-border);
+      background: var(--white);
+      color: var(--navy);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-line {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    h1 {
+      margin: 2px 0 0;
+      font-size: 28px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: var(--navy);
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 420px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      overflow: hidden;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, var(--navy-dark), var(--navy-mid), var(--navy-soft));
+      color: white;
+      box-shadow: var(--shadow-hero);
+      margin-bottom: 20px;
+    }
+
+    .hero-inner {
+      padding: 20px 22px 22px;
+    }
+
+    .hero-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #F5F7FB;
+      margin-bottom: 14px;
+      backdrop-filter: blur(6px);
+    }
+
+    .hero-title {
+      max-width: 212px;
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.16;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-desc {
+      max-width: 246px;
+      margin-top: 16px;
+      font-size: 13px;
+      line-height: 1.95;
+      color: #E5ECF6;
+    }
+
+    .hero-qr {
+      width: 52px;
+      height: 52px;
+      border: none;
+      border-radius: 17px;
+      background: rgba(255,255,255,0.10);
+      color: white;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      font-size: 22px;
+    }
+
+    .entry-list { display: grid; gap: 16px; }
+
+    .entry-button {
+      width: 100%;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.16s ease;
+      display: block;
+      background: transparent;
+      padding: 0;
+    }
+    .entry-button:active { transform: scale(0.99); }
+
+    .card,
+    .stat-card,
+    .printer-card,
+    .job-card,
+    .section-card,
+    .rules-card {
+      transition: transform 0.18s ease, box-shadow 0.22s ease, opacity 0.2s ease;
+      animation: fadeUp 0.28s ease both;
+    }
+
+    .entry.primary,
+    .entry.secondary,
+    .tab-btn,
+    .btn,
+    .hero-qr,
+    .icon-button,
+    .back-btn,
+    .stat-card,
+    .printer-card,
+    .job-card {
+      transition: transform 0.18s ease, box-shadow 0.22s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .entry-button:hover .entry.primary,
+    .entry-button:hover .entry.secondary,
+    .stat-card:hover,
+    .printer-card:hover,
+    .job-card:hover,
+    .section-card:hover,
+    .rules-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px rgba(0, 48, 87, 0.11);
+    }
+
+    .tab-btn:hover,
+    .btn:hover,
+    .hero-qr:hover,
+    .icon-button:hover,
+    .back-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .modal-card {
+      animation: modalIn 0.22s ease both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .entry-button.gold-shell {
+      padding: 1px;
+      border-radius: var(--radius-xl);
+      background: #B3A369;
+      box-shadow: 0 12px 30px rgba(0,48,87,0.08);
+    }
+
+    .entry {
+      display: flex;
+      gap: 14px;
+      padding: 16px 18px;
+      align-items: flex-start;
+      border-radius: var(--radius-xl);
+    }
+
+    .entry.primary {
+      background: linear-gradient(135deg, var(--navy-dark), #04122D);
+      color: white;
+      box-shadow: 0 18px 40px rgba(0,24,60,0.24);
+    }
+
+    .entry.secondary {
+      background: var(--white);
+      border: none;
+      color: var(--navy);
+      box-shadow: none;
+    }
+
+    .entry-icon {
+      width: 52px;
+      height: 76px;
+      border-radius: 18px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 16px;
+      font-size: 20px;
+    }
+
+    .entry.primary .entry-icon {
+      background: #21385F;
+      color: white;
+      backdrop-filter: blur(6px);
+    }
+    .entry.secondary .entry-icon {
+      width: 52px;
+      height: 76px;
+      border-radius: 18px;
+      background: #F3EFE4;
+      color: var(--navy);
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 16px;
+    }
+
+    .entry-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 7px;
+      letter-spacing: -0.01em;
+    }
+
+    .entry-desc {
+      font-size: 12px;
+      line-height: 1.9;
+      max-width: 270px;
+    }
+    .entry.primary .entry-desc { color: #E5ECF6; }
+    .entry.secondary .entry-desc { color: var(--muted); }
+
+    .stats-grid {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border: none;
+      border-radius: var(--radius-lg);
+      box-shadow:
+        inset 0 0 0 1px rgba(179,163,105,0.18),
+        var(--shadow);
+      padding: 12px 14px 14px;
+    }
+
+    .stat-icon {
+      display: inline-flex;
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      align-items: center;
+      justify-content: center;
+      background: var(--soft);
+      color: var(--navy);
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      line-height: 1.1;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .stat-label {
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .section-card {
+      margin-top: 16px;
+      border-radius: var(--radius-lg);
+      background: var(--white);
+      box-shadow: var(--shadow);
+      padding: 15px 16px 16px;
+    }
+
+    .section-header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .section-header .entry-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--soft);
+      color: var(--navy);
+      font-size: 18px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .section-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.5;
+    }
+
+    .occ-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .occ-box {
+      border-radius: var(--radius-md);
+      background: var(--soft-2);
+      padding: 14px 15px;
+    }
+
+    .occ-value {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .occ-label {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .label-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .label-icon svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+
+    .btn svg,
+    .entry-icon svg,
+    .stat-icon svg,
+    .printer-icon svg,
+    .hero-qr svg,
+    .back-btn svg,
+    .icon-button svg {
+      display: block;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #CBD5E1;
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: var(--white);
+      color: #0f172a;
+      outline: none;
+    }
+
+    textarea { resize: vertical; min-height: 110px; }
+
+    .lookup-wrap { position: relative; }
+    .lookup-wrap .prefix {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-weight: 700;
+    }
+    .lookup-wrap input { padding-left: 34px; }
+
+    .lookup-result {
+      margin-top: 12px;
+      border-radius: 18px;
+      background: #F8FAFC;
+      padding: 14px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: #475569;
+    }
+    .lookup-result strong { color: #0f172a; }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 17px;
+      padding: 13px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: var(--navy);
+    }
+    .btn-primary:hover { background: #C4B47A; }
+    .btn-outline {
+      background: var(--white);
+      color: var(--navy);
+      border: 1px solid #CBD5E1;
+    }
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+    .btn-ghost-dark {
+      background: rgba(255,255,255,0.06);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .page-dark {
+      overflow: hidden;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, var(--navy-dark), var(--navy-mid), var(--navy-soft));
+      color: white;
+      box-shadow: 0 20px 50px rgba(0,24,60,0.22);
+    }
+
+    .page-dark .page-head {
+      padding: 24px 24px 0;
+    }
+
+    .page-dark .page-head h2 {
+      margin: 0;
+      font-size: 22px;
+      color: white;
+    }
+
+    .page-dark .page-head p {
+      margin: 8px 0 0;
+      color: #DCE6F3;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .page-dark .page-body {
+      padding: 20px 24px 24px;
+    }
+
+    .page-dark label { color: #E5ECF6; }
+    .page-dark input,
+    .page-dark select,
+    .page-dark textarea {
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.12);
+      color: white;
+    }
+    .page-dark input::placeholder,
+    .page-dark textarea::placeholder { color: #C9D6E8; }
+
+    .code-box {
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.10);
+      padding: 18px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      word-break: break-all;
+    }
+
+    .message-box {
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      background: #F8FAFC;
+      color: #475569;
+      font-size: 14px;
+    }
+
+    .message-box.dark {
+      background: rgba(255,255,255,0.10);
+      color: #E5ECF6;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .admin-actions .btn { width: auto; padding-inline: 14px; }
+
+    .stats-grid-wide {
+      margin-bottom: 20px;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .search-card {
+      margin-bottom: 20px;
+      border-radius: var(--radius-lg);
+      background: var(--white);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 220px;
+    }
+
+    .job-list { display: grid; gap: 16px; }
+
+    .job-card {
+      border-radius: var(--radius-lg);
+      background: var(--white);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      border: 1px solid rgba(179, 163, 105, 0.12);
+    }
+
+    .job-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .job-badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+    .job-title { font-size: 18px; font-weight: 700; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge.secondary {
+      background: #EDE8D0;
+      color: var(--navy);
+    }
+    .badge.outline {
+      background: var(--white);
+      color: var(--navy);
+      border: 1px solid var(--gold);
+    }
+
+    .job-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+      font-size: 14px;
+      line-height: 1.8;
+      color: #475569;
+      margin-top: 10px;
+    }
+
+    .job-grid strong,
+    .job-note strong { color: #0f172a; }
+
+    .job-note {
+      margin-top: 12px;
+      border-radius: 18px;
+      background: #F8FAFC;
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #475569;
+    }
+
+    .job-date {
+      margin-top: 10px;
+      color: var(--muted-2);
+      font-size: 12px;
+    }
+
+    .job-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .job-actions .btn { width: auto; padding-inline: 14px; }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      border: none;
+      padding: 12px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--navy);
+      font-weight: 600;
+    }
+    .tab-btn.active {
+      background: var(--navy);
+      color: white;
+    }
+
+    .printer-card {
+      border-radius: var(--radius-lg);
+      background: var(--white);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(179, 163, 105, 0.12);
+    }
+
+    .printer-icon {
+      display: inline-flex;
+      width: 46px;
+      height: 46px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      background: #F3F6FA;
+      color: var(--navy);
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .printer-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .printer-detail {
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: #475569;
+    }
+
+    .printer-size {
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--muted);
+    }
+
+    .rules-card {
+      border-radius: 24px;
+      background: var(--white);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      border: 1px solid rgba(179, 163, 105, 0.12);
+    }
+
+    .rules-text {
+      font-size: 14px;
+      line-height: 2;
+      color: #475569;
+    }
+    .rules-text p { margin: 0 0 14px; }
+
+    .footer-note {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted-2);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow: auto;
+      border-radius: 24px;
+      background: var(--white);
+      box-shadow: 0 24px 60px rgba(15,23,42,0.30);
+      padding: 20px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+
+    .modal-desc {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .modal-actions .btn { width: auto; padding-inline: 14px; }
+
+    pre.csv-box {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #F8FAFC;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 340px;
+      overflow: auto;
+    }
+
+    .logo-img {
+      display: block;
+      height: 34px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .stats-grid-wide { grid-template-columns: repeat(2, 1fr); }
+      .search-card { grid-template-columns: 1fr; }
+      .job-top { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    window.addEventListener('error', (event) => {
+      document.body.innerHTML = `<pre style="white-space:pre-wrap;padding:16px;background:#fff1f2;color:#9f1239;font:14px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;">Preview error:
+${String(event.message || 'Unknown error')}
+
+${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.colno || '')}</pre>`;
+    });
+    const STORAGE_KEY = 'gt-soa-3d-print-lab-replica-jobs-v1';
+    const AUTH_KEY = 'gt-soa-3d-print-lab-replica-auth-v1';
+    const X1C_TOTAL = 16;
+    const H2D_TOTAL = 6;
+    const AMS_TRACK_OPTIONS = ['1', '2', '3', '4'];
+    const STATUS_OPTIONS = ['Submitted', 'Queued', 'Printing', 'Completed', 'Picked Up'];
+    const ACTIVE_STATUSES = ['Queued', 'Printing'];
+
+    const logoData = 'data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4P8FAAD+F0mSDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4D8AAAD4fxmNRhMSEmLWrFljrr766v/9DwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgPAAAA+H8ZPny4mTVrlhkyZMh//wcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4DwAAAPh/WbRokZm2bZsZMWKE//0PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4D8AAAD4f1m2bJkZNmyYGTZsmP/9DwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOA/AAAA+H8RERHm5ZdfNuPHj/f//gMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgPAAAA+H9VVVWZZcuWmWuuuUb/7z8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4DwAAAPh/KSwsNIMGDTLfffed//sPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4D8AAAD4f9m3b59Zvnx5GTlypP/7DwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOA/AAAA+H+JxWKmTZtmNm7c6P/+AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4DwAAAPh/WbJkiVm+fLn/7z8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgP8BAAAA/H+amppMRERE/+/fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4DwAAAPh/ef75582zzz7r//0PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgP8BAAAA/H/V1dVmwIABpr6+3v/7DwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4BwAAAPh/UVFR5vbbb/d//wMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4DwAAAPh/KSwsNAMHDvR//wMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4DwAAAPh/2b59uxk5cqT/9x8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4DwAAAPh/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgP//A8kqpn8CK4tTAAAAAElFTkSuQmCC';
+
+    const printerInfo = [
+      {
+        name: 'Bambu X1C',
+        type: '',
+        size: 'Recommended max model size in current lab policy: no larger than a 9.8" × 9.8" × 9.8" cube.',
+        detail: 'General studio workflow printer. Best for quick iterations, queue-based production, and most student jobs.',
+      },
+      {
+        name: 'Bambu H2D',
+        type: '',
+        size: 'Build volume: single nozzle 12.8" × 12.6" × 12.8"; dual nozzle 11.8" × 12.6" × 12.8"; total two-nozzle volume 13.8" × 12.6" × 12.8".',
+        detail: 'High-capacity printer for larger or more demanding model jobs depending on lab workflow decisions.',
+      }
+    ];
+
+    const labRules = [
+      'Students should plan ahead and purchase PLA filament from trusted vendors such as Bambu, Overture, or Polymaker.',
+      'Use 1.75 mm filament. PLA Basic and PLA Matte cover most normal use cases.',
+      'Except for pre-approved courses using bulk filament, the lab will not store individual filament rolls in the space.',
+      'Your filament should be returned with your finished print at the time of retrieval.',
+      'In Bambu Studio, set the default printer to X1 Carbon. There is no need to create an account just to prepare files.',
+      'Prepare clean, watertight Rhino geometry, scale the model correctly, switch units to millimeters, and export to STL before coming to the lab.',
+      'For X1C workflows in the current lab policy, printable models should be no larger than a 9.8-inch cube.',
+      'After importing the STL into Bambu Studio, slice the plate and export the plate sliced file before coming to the lab for further assistance.',
+      'Final machine assignment and AMS placement are determined by lab administrators or TA staff.',
+      'Students should keep their work code and use it to check whether the print has been completed.',
+    ];
+
+    const state = {
+      page: 'home',
+      jobs: loadJobs(),
+      adminAuthed: loadAuth(),
+      search: '',
+      statusFilter: 'all',
+      message: '',
+      submittedCode: '',
+      exportOpen: false,
+      exportText: '',
+      lookupCode: '',
+      lookupResult: null,
+      studentForm: { name:'', email:'', filamentOwner:'', studio:'', notes:'', tasks:[{ title:'', notes:'' }] },
+      adminForm: { username:'', password:'' },
+      qrOpen: false,
+      infoTab: 'printers',
+      manageJobId: null,
+      deleteJobId: null,
+    };
+
+    if (state.jobs.length === 0) {
+      state.jobs = [
+        {
+          id: 'GT3D-DEMO01',
+          name: 'Alex Kim',
+          email: 'alexkim@gatech.edu',
+          filamentOwner: 'Studio',
+          studio: 'BSW Studio',
+          projectTitle: 'Tower Massing Model',
+          notes: 'Need before Friday pin-up.',
+          status: 'Queued',
+          printerType: 'X1C',
+          printerNumber: '3',
+          amsTrack: '1',
+          submittedAt: new Date().toISOString(),
+        },
+        {
+          id: 'GT3D-DEMO02',
+          name: 'Maya Chen',
+          email: 'mchen36@gatech.edu',
+          filamentOwner: 'Own',
+          studio: 'ARCH 4016',
+          projectTitle: 'Facade Component Test',
+          notes: 'White PLA preferred.',
+          status: 'Completed',
+          printerType: 'H2D',
+          printerNumber: '2',
+          amsTrack: '3',
+          submittedAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+        },
+      ];
+      saveJobs();
+    }
+
+    function loadJobs() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+    }
+    function saveJobs() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.jobs)); }
+    function loadAuth() {
+      try { return localStorage.getItem(AUTH_KEY) === 'true'; } catch { return false; }
+    }
+    function saveAuth(v) { localStorage.setItem(AUTH_KEY, v ? 'true' : 'false'); }
+    function createId() { return `GT3D-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; }
+    function formatDate(date) { return new Date(date).toLocaleString(); }
+    function setPage(page) { state.page = page; render(); }
+    function escapeHtml(v) {
+      return String(v ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+    }
+
+    function showTempMessage(text) {
+      state.message = text;
+      render();
+      clearTimeout(showTempMessage.timer);
+      showTempMessage.timer = setTimeout(() => {
+        if (state.message === text) {
+          state.message = '';
+          render();
+        }
+      }, 3500);
+    }
+
+    function getJobTasks(job) {
+      if (Array.isArray(job.tasks) && job.tasks.length) return job.tasks;
+      const extra = String(job.extraTasks || '').split('|').map(s => s.trim()).filter(Boolean).map(text => ({ title: text, notes: '' }));
+      const primary = job.primaryTaskTitle || job.projectTitle || 'Untitled Task';
+      return [{ title: primary, notes: '', estimatedTime: '', status: job.status || 'Submitted', printerType: job.printerType || '', printerNumber: job.printerNumber || '', amsTrack: job.amsTrack || '' }, ...extra.map(task => ({ ...task, estimatedTime: '' }))];
+    }
+
+    function filteredJobs() {
+      return state.jobs.filter((job) => {
+        const statusOk = state.statusFilter === 'all' || job.status === state.statusFilter;
+        const taskText = getJobTasks(job).map(task => [task.title, task.notes, task.status, task.printerType, task.printerNumber, task.amsTrack].filter(Boolean).join(' ')).join(' ');
+        const haystack = [job.id, job.name, job.email, job.studio, job.projectTitle, job.extraTasks, taskText, job.printerType, job.printerNumber, job.amsTrack]
+          .filter(Boolean).join(' ').toLowerCase();
+        const searchOk = haystack.includes(state.search.toLowerCase());
+        return statusOk && searchOk;
+      });
+    }
+
+    function machinesInUse(type) {
+      const active = state.jobs.filter(j => j.printerType === type && j.printerNumber && ACTIVE_STATUSES.includes(j.status));
+      return new Set(active.map(j => j.printerNumber)).size;
+    }
+
+    function stats() {
+      return [
+        { title: 'All Jobs', value: state.jobs.length, icon: '📋' },
+        { title: 'Submitted', value: state.jobs.filter(j => j.status === 'Submitted').length, icon: '📝' },
+        { title: 'Queued', value: state.jobs.filter(j => j.status === 'Queued').length, icon: '🧱' },
+        { title: 'Printing', value: state.jobs.filter(j => j.status === 'Printing').length, icon: '🖨️' },
+      ];
+    }
+
+    function toCsv(rows) {
+      const headers = ['Work Code','Project Title','Name','GT Email','Filament Ownership','Studio','Status','Printer Type','Printer Number','AMS Track','Submitted At','Notes'];
+      const escape = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+      const lines = rows.map((row) => [
+        row.id,row.projectTitle,row.name,row.email,row.filamentOwner,row.studio,row.status,row.printerType,row.printerNumber,row.amsTrack,formatDate(row.submittedAt),row.notes,
+      ].map(escape).join(','));
+      return [headers.join(','), ...lines].join('\n');
+    }
+
+    function downloadCsv() {
+      const csv = toCsv(state.jobs);
+      state.exportText = csv;
+      try {
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'gt-soa-3d-print-lab-jobs.csv';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 0);
+      } catch {}
+      state.exportOpen = true;
+      render();
+    }
+
+    function copyText(text, success='Copied.') {
+      if (!text) return;
+      navigator.clipboard?.writeText(text).then(() => {
+        showTempMessage(success);
+      }).catch(() => {
+        try {
+          const temp = document.createElement('textarea');
+          temp.value = text;
+          temp.style.position = 'fixed';
+          temp.style.opacity = '0';
+          document.body.appendChild(temp);
+          temp.focus();
+          temp.select();
+          document.execCommand('copy');
+          document.body.removeChild(temp);
+          showTempMessage(success);
+        } catch {
+          showTempMessage('Copy failed. Please copy manually.');
+        }
+      });
+    }
+
+    function updateJob(id, patch) {
+      state.jobs = state.jobs.map(job => job.id === id ? { ...job, ...patch } : job);
+      saveJobs();
+      render();
+    }
+
+    function updateJobTask(id, taskIndex, patch) {
+      state.jobs = state.jobs.map(job => {
+        if (job.id !== id) return job;
+        const tasks = getJobTasks(job).map((task, idx) => idx === taskIndex ? { ...task, ...patch } : task);
+        const uniqueStatuses = [...new Set(tasks.map(task => task.status || 'Submitted'))];
+        const summaryStatus = uniqueStatuses.length > 1 ? 'Mixed' : uniqueStatuses[0];
+        return { ...job, tasks, status: summaryStatus };
+      });
+      saveJobs();
+      render();
+    }
+
+    function saveManagedJob(jobId) {
+      const container = document.querySelector(`[data-manage-job="${jobId}"]`);
+      if (!container) {
+        state.manageJobId = null;
+        render();
+        return;
+      }
+      const cards = container.querySelectorAll('[data-task-index]');
+      const patches = [];
+      cards.forEach(card => {
+        const index = Number(card.getAttribute('data-task-index'));
+        const printerTypeValue = card.querySelector('[data-field="printerType"]')?.value || 'unassigned-type';
+        const amsValue = card.querySelector('[data-field="amsTrack"]')?.value || 'unassigned-track';
+        patches[index] = {
+          status: card.querySelector('[data-field="status"]')?.value || 'Submitted',
+          printerType: printerTypeValue === 'unassigned-type' ? '' : printerTypeValue,
+          printerNumber: card.querySelector('[data-field="printerNumber"]')?.value || '',
+          amsTrack: amsValue === 'unassigned-track' ? '' : amsValue,
+          estimatedTime: card.querySelector('[data-field="estimatedTime"]')?.value || '',
+        };
+      });
+
+      state.jobs = state.jobs.map(job => {
+        if (job.id !== jobId) return job;
+        const tasks = getJobTasks(job).map((task, idx) => ({ ...task, ...(patches[idx] || {}) }));
+        const uniqueStatuses = [...new Set(tasks.map(task => task.status || 'Submitted'))];
+        const summaryStatus = uniqueStatuses.length > 1 ? 'Mixed' : uniqueStatuses[0];
+        return { ...job, tasks, status: summaryStatus };
+      });
+      saveJobs();
+      state.manageJobId = null;
+      render();
+    }
+
+    function deleteJob(id) {
+      state.jobs = state.jobs.filter(job => job.id !== id);
+      if (state.lookupResult && state.lookupResult.id === id) state.lookupResult = null;
+      state.deleteJobId = null;
+      saveJobs();
+      showTempMessage(`Deleted ${id}.`);
+      render();
+    }
+
+    function submitStudentForm(e) {
+      e.preventDefault();
+      const tasks = (state.studentForm.tasks || []).map(task => ({
+        title: String(task.title || '').trim(),
+        notes: String(task.notes || '').trim(),
+      })).filter(task => task.title);
+      if (!state.studentForm.name || !state.studentForm.email || !state.studentForm.filamentOwner || !state.studentForm.studio || tasks.length === 0) {
+        showTempMessage('Please complete all required fields.');
+        return;
+      }
+      const primaryTask = tasks[0];
+      const additionalTasks = tasks.slice(1).map(task => task.notes ? `${task.title} (${task.notes})` : task.title).join(' | ');
+      const job = {
+        id: createId(),
+        name: state.studentForm.name,
+        email: state.studentForm.email,
+        filamentOwner: state.studentForm.filamentOwner,
+        studio: state.studentForm.studio,
+        notes: state.studentForm.notes,
+        projectTitle: tasks.length > 1 ? `${primaryTask.title} + ${tasks.length - 1} more` : primaryTask.title,
+        primaryTaskTitle: primaryTask.title,
+        extraTasks: additionalTasks,
+        tasks: tasks.map(task => ({ ...task, estimatedTime: '' })),
+        status: 'Submitted',
+        printerType: '',
+        printerNumber: '',
+        amsTrack: '',
+        submittedAt: new Date().toISOString(),
+      };
+      state.jobs = [job, ...state.jobs];
+      saveJobs();
+      state.submittedCode = job.id;
+      state.studentForm = { name:'', email:'', filamentOwner:'', studio:'', notes:'', tasks:[{ title:'', notes:'' }] };
+      state.page = 'student-success';
+      render();
+    }
+
+    function addTaskBlock() {
+      state.studentForm.tasks.push({ title:'', notes:'' });
+      render();
+    }
+
+    function removeTaskBlock(index) {
+      if ((state.studentForm.tasks || []).length <= 1) return;
+      state.studentForm.tasks.splice(index, 1);
+      render();
+    }
+
+    function updateTaskField(index, key, value) {
+      state.studentForm.tasks[index][key] = value;
+    }
+
+    function loginAdmin(e) {
+      e.preventDefault();
+      if (state.adminForm.username === 'admin' && state.adminForm.password === 'gtsoa3dprint') {
+        state.adminAuthed = true;
+        saveAuth(true);
+        state.page = 'admin';
+        state.message = '';
+        render();
+      } else {
+        showTempMessage('Invalid admin credentials.');
+      }
+    }
+
+    function logoutAdmin() {
+      state.adminAuthed = false;
+      saveAuth(false);
+      setPage('home');
+    }
+
+    function getSummaryStatus(job) {
+      const tasks = getJobTasks(job);
+      const uniqueStatuses = [...new Set(tasks.map(task => task.status || job.status || 'Submitted'))];
+      return uniqueStatuses.length > 1 ? 'Mixed' : (uniqueStatuses[0] || 'Submitted');
+    }
+
+    function handleLookup() {
+      const code = state.lookupCode.trim().toUpperCase();
+      const found = state.jobs.find(job => job.id.toUpperCase() === code);
+      if (found) {
+        state.lookupResult = { ...found, status: getSummaryStatus(found) };
+      } else {
+        state.lookupResult = {
+          id: code,
+          projectTitle: 'Not found',
+          status: 'No matching work code found',
+          printerType: '',
+          printerNumber: '',
+          amsTrack: '',
+        };
+      }
+      render();
+    }
+
+    function topBar(title, subtitle, showBack=false, actions='') {
+      return `
+        <div class="topbar">
+          <div class="topbar-left">
+            ${showBack ? `<button class="back-btn" onclick="setPage('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>` : ''}
+            <div>
+              <div class="brand-line">GEORGIA TECH SCHOOL OF ARCHITECTURE</div>
+              <h1>${title}</h1>
+              ${subtitle ? `<div class="subtitle">${subtitle}</div>` : ''}
+            </div>
+          </div>
+          ${actions}
+        </div>
+      `;
+    }
+
+    function renderHome() {
+      const qrImage = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(location.href)}`;
+      const iconMap = {
+        'All Jobs': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"></rect><path d="M9 7h6"></path><path d="M9 11h6"></path><path d="M9 15h4"></path></svg>',
+        'Submitted': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path><path d="M9 13h6"></path><path d="M9 17h4"></path></svg>',
+        'Queued': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4-8 4-8-4 8-4z"></path><path d="M4 12l8 4 8-4"></path><path d="M4 17l8 4 8-4"></path></svg>',
+        'Printing': '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V4h12v5"></path><rect x="6" y="14" width="12" height="6" rx="2"></rect><path d="M6 12H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1"></path></svg>'
+      };
+
+      return `
+        ${topBar('3D Print Lab', 'Mobile-first workflow for print submission, queue tracking, and lab management.')}
+
+        <div class="hero">
+          <div class="hero-inner" style="min-height:252px;">
+            <div class="hero-row">
+              <div>
+                <div class="hero-pill" style="margin-bottom:18px;">Scan to access</div>
+                <h2 class="hero-title" style="max-width:220px; font-size:28px; line-height:1.13;">Georgia Tech SoA 3D Print Lab</h2>
+                <div class="hero-desc" style="max-width:262px; margin-top:18px; font-size:14px; line-height:1.95;">Submit print work, review printer information, or enter the administrator dashboard.</div>
+              </div>
+              <button class="hero-qr" onclick="state.qrOpen=true; render();" aria-label="Open QR code" style="width:56px; height:56px; border-radius:18px; display:inline-flex; align-items:center; justify-content:center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 5a2 2 0 0 1 2-2h3"></path>
+                  <path d="M16 3h3a2 2 0 0 1 2 2v3"></path>
+                  <path d="M21 16v3a2 2 0 0 1-2 2h-3"></path>
+                  <path d="M8 21H5a2 2 0 0 1-2-2v-3"></path>
+                  <path d="M7 7h.01"></path>
+                  <path d="M17 7h.01"></path>
+                  <path d="M7 17h.01"></path>
+                  <path d="M12 7h1"></path>
+                  <path d="M12 12h1"></path>
+                  <path d="M17 12h.01"></path>
+                  <path d="M12 17h.01"></path>
+                  <path d="M17 17h.01"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="entry-list">
+          <button class="entry-button" onclick="setPage('student')">
+            <div class="entry primary">
+              <div class="entry-icon">
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="8"></circle>
+                  <path d="M12 8v8"></path>
+                  <path d="M8 12h8"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="entry-title">Student / Faculty Entry</div>
+                <div class="entry-desc">Create a new 3D print work submission with name, GT email, filament source, and studio info.</div>
+              </div>
+            </div>
+          </button>
+
+          <button class="entry-button gold-shell" onclick="setPage('${state.adminAuthed ? 'admin' : 'admin-login'}')">
+            <div class="entry secondary">
+              <div class="entry-icon">
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"></path>
+                  <path d="M9.5 12.2l1.7 1.8 3.3-3.7"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="entry-title">Administrator Entry</div>
+                <div class="entry-desc">Access the protected dashboard to review submissions, assign machines, and document AMS tracks.</div>
+              </div>
+            </div>
+          </button>
+
+          <button class="entry-button gold-shell" onclick="setPage('info')">
+            <div class="entry secondary">
+              <div class="entry-icon">
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M12 10v6"></path>
+                  <path d="M12 7h.01"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="entry-title">Printer Data & Lab Information</div>
+                <div class="entry-desc">Check printer information, machine counts, and lab rules before submitting your work.</div>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <div class="stats-grid">
+          ${stats().map(item => `
+            <div class="stat-card">
+              <div class="stat-icon">${iconMap[item.title] || ''}</div>
+              <div class="stat-value">${item.value}</div>
+              <div class="stat-label">${item.title}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="entry-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V4h12v5"></path><rect x="6" y="14" width="12" height="6" rx="2"></rect><path d="M6 12H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1"></path></svg></div>
+            <div>
+              <div class="section-title">Live Printer Occupancy</div>
+              <div class="section-subtitle">Updates when a TA or admin assigns a machine to an active job.</div>
+            </div>
+          </div>
+          <div class="occ-grid">
+            <div class="occ-box">
+              <div class="occ-value">X1C: ${machinesInUse('X1C')}/${X1C_TOTAL}</div>
+              <div class="occ-label">Machines currently in use</div>
+            </div>
+            <div class="occ-box">
+              <div class="occ-value">H2D: ${machinesInUse('H2D')}/${H2D_TOTAL}</div>
+              <div class="occ-label">Machines currently in use</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title" style="font-size:18px; margin-bottom:6px;">Check Your Print Status</div>
+          <div class="section-subtitle" style="margin-bottom:12px;">Enter your work code to check whether your print job has been completed.</div>
+          <div class="lookup-wrap">
+            <div class="prefix">#</div>
+            <input value="${escapeHtml(state.lookupCode)}" oninput="state.lookupCode=this.value.toUpperCase()" placeholder="Enter work code, e.g. GT3D-AB12CD" />
+          </div>
+          <div style="height:12px"></div>
+          <button class="btn btn-outline" onclick="handleLookup()">Check Status</button>
+          ${state.lookupResult ? `
+            <div class="lookup-result">
+              <div><strong>Work Code:</strong> ${escapeHtml(state.lookupResult.id)}</div>
+              <div><strong>Projects:</strong></div>
+              <div style="margin-top:6px; margin-bottom:4px; display:grid; gap:4px;">
+                ${getJobTasks(state.lookupResult).map(task => `<div>${escapeHtml(task.title || 'Untitled Task')}</div>`).join('')}
+              </div>
+              <div><strong>Status:</strong> ${escapeHtml(state.lookupResult.status)}</div>
+              <div style="margin-top:10px;"><strong>Tasks Under This Code:</strong></div>
+              ${getJobTasks(state.lookupResult).map((task, index) => `
+                <div style="margin-top:8px; border-radius:14px; background:#f8fafc; padding:10px 12px;">
+                  <div><strong>Task ${index + 1}:</strong> ${escapeHtml(task.title || 'Untitled Task')}</div>
+                  ${task.notes ? `<div><strong>Notes:</strong> ${escapeHtml(task.notes)}</div>` : ''}
+                  <div><strong>Status:</strong> ${escapeHtml(task.status || state.lookupResult.status || 'Submitted')}</div>
+                  <div><strong>Assigned Machine:</strong> ${task.printerType ? `${escapeHtml(task.printerType)} #${escapeHtml(task.printerNumber || '—')}` : 'Not assigned yet'}</div>
+                  <div><strong>AMS Track:</strong> ${escapeHtml(task.amsTrack || 'Not assigned yet')}</div>
+                  <div><strong>Estimated Time:</strong> ${escapeHtml(task.estimatedTime || 'Not set yet')}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="footer-note">Prototype web app preview for Georgia Tech School of Architecture</div>
+        ${renderQrModal(qrImage)}
+      `;
+    }
+
+    function renderStudent() {
+      return `
+        ${topBar('Submit Print Work', 'Students and faculty can create a new 3D print work order here.', true)}
+        <div class="card" style="border-radius:28px; padding:24px;">
+          <div class="section-title" style="font-size:22px; margin-bottom:6px; color:#0f172a;">3D Print Work Form</div>
+          <div class="section-subtitle" style="font-size:14px; margin-bottom:20px;">All fields are currently required except notes.</div>
+          <form onsubmit="submitStudentForm(event)">
+            <div class="field"><label><span class="label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="8" r="4"></circle></svg></span>Full Name <span style="color:#e11d48;">*</span></label><input value="${escapeHtml(state.studentForm.name)}" oninput="state.studentForm.name=this.value" placeholder="Your full name" required /></div>
+            <div class="field"><label><span class="label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg></span>GT Email <span style="color:#e11d48;">*</span></label><input type="email" value="${escapeHtml(state.studentForm.email)}" oninput="state.studentForm.email=this.value" placeholder="name@gatech.edu" required /></div>
+            <div class="field"><label><span class="label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg></span>Filament Ownership <span style="color:#e11d48;">*</span></label>
+              <select onchange="state.studentForm.filamentOwner=this.value" required>
+                <option value="">Select filament ownership</option>
+                <option value="Own" ${state.studentForm.filamentOwner==='Own'?'selected':''}>Own</option>
+                <option value="Studio" ${state.studentForm.filamentOwner==='Studio'?'selected':''}>Studio</option>
+              </select>
+            </div>
+            <div class="field"><label><span class="label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4-8 4-8-4 8-4z"></path><path d="M4 12l8 4 8-4"></path><path d="M4 17l8 4 8-4"></path></svg></span>Studio <span style="color:#e11d48;">*</span></label><input value="${escapeHtml(state.studentForm.studio)}" oninput="state.studentForm.studio=this.value" placeholder="Enter your studio name" required /></div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin:18px 0 10px;">
+              <div class="section-title" style="font-size:16px; color:#0f172a;">Tasks Under Same Code</div>
+              <button type="button" class="btn btn-outline" style="width:auto; padding:8px 12px; font-size:13px;" onclick="addTaskBlock()">+ Add Task</button>
+            </div>
+
+            ${(state.studentForm.tasks || []).map((task, index) => `
+              <div class="message-box" style="margin-bottom:12px; background:#f8fafc; border:1px solid #e2e8f0;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                  <div class="section-title" style="font-size:14px; color:#0f172a;">Task ${index + 1}</div>
+                  ${(state.studentForm.tasks || []).length > 1 ? `<button type="button" class="btn btn-outline" style="width:auto; padding:6px 10px; font-size:12px;" onclick="removeTaskBlock(${index})">Remove</button>` : ''}
+                </div>
+                <div class="field"><label><span class="label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path><path d="M9 13h6"></path><path d="M9 17h4"></path></svg></span>Task Title <span style="color:#e11d48;">*</span></label><input value="${escapeHtml(task.title || '')}" oninput="updateTaskField(${index}, 'title', this.value)" placeholder="File, print work, or model title" required /></div>
+                <div class="field" style="margin-bottom:0;"><label><span class="label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l4 4v14H4V3h4"></path><path d="M8 3v4h8"></path><path d="M8 13h8"></path><path d="M8 17h6"></path></svg></span>Task Notes</label><textarea oninput="updateTaskField(${index}, 'notes', this.value)" placeholder="Optional notes for this specific task.">${escapeHtml(task.notes || '')}</textarea></div>
+              </div>
+            `).join('')}
+
+            <div class="field"><label><span class="label-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l4 4v14H4V3h4"></path><path d="M8 3v4h8"></path><path d="M8 13h8"></path><path d="M8 17h6"></path></svg></span>General Notes</label><textarea oninput="state.studentForm.notes=this.value" placeholder="Optional notes for the whole submission.">${escapeHtml(state.studentForm.notes)}</textarea></div>
+            <button class="btn" style="background:#0b173a; color:white;" type="submit">Submit Print Job</button>
+          </form>
+        </div>
+      `;
+    }
+
+    function renderStudentSuccess() {
+      return `
+        ${topBar('Submission Complete', 'Please save your work code before leaving this page.', true)}
+        <div class="card" style="border-radius:28px; padding:24px;">
+          <div class="section-title" style="font-size:22px; margin-bottom:6px; color:#0f172a;">Your Work Code</div>
+          <div class="section-subtitle" style="font-size:14px; margin-bottom:20px;">Use this code later on the home page to check whether your print job has been completed.</div>
+          <div style="border-radius:18px; background:#0b173a; padding:18px; text-align:center; font-size:28px; font-weight:800; letter-spacing:0.18em; color:white; word-break:break-all;">${escapeHtml(state.submittedCode)}</div>
+          <div style="height:16px"></div>
+          <input value="${escapeHtml(state.submittedCode)}" readonly style="text-align:center; font-family: ui-monospace, monospace;" />
+          <div style="height:16px"></div>
+          <div class="row-2">
+            <button class="btn" style="background:#0b173a; color:white;" onclick="copyText(state.submittedCode,'Work code copied.')">Copy Code</button>
+            <button class="btn btn-outline" onclick="setPage('home')">Go to Home</button>
+          </div>
+          ${state.message ? `<div style="height:12px"></div><div class="message-box">${escapeHtml(state.message)}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderAdminLogin() {
+      return `
+        ${topBar('Administrator Login', 'Restricted access for lab managers and authorized staff.', true)}
+        <div class="card" style="border-radius:28px; padding:20px;">
+          <div class="section-title" style="font-size:20px; margin-bottom:6px;">Protected Dashboard Access</div>
+          <div class="section-subtitle" style="margin-bottom:16px;">This preview uses demo credentials for administrator access.</div>
+          <form onsubmit="loginAdmin(event)">
+            <div class="field"><label>Username</label><input value="${escapeHtml(state.adminForm.username)}" oninput="state.adminForm.username=this.value" placeholder="admin" required /></div>
+            <div class="field"><label>Password</label><input type="password" value="${escapeHtml(state.adminForm.password)}" oninput="state.adminForm.password=this.value" placeholder="••••••••" required /></div>
+            <button class="btn btn-primary" type="submit">Sign In</button>
+          </form>
+          <div style="height:16px"></div>
+          <div class="message-box">Demo login: <strong>admin</strong> / <strong>gtsoa3dprint</strong></div>
+          ${state.message ? `<div style="height:12px"></div><div style="color:#e11d48; font-size:14px;">${escapeHtml(state.message)}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderAdmin() {
+      const adminIconMap = {
+        'All Jobs': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2"></rect><path d="M9 7h6"></path><path d="M9 11h6"></path><path d="M9 15h4"></path></svg>',
+        'Submitted': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path><path d="M9 13h6"></path><path d="M9 17h4"></path></svg>',
+        'Queued': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4-8 4-8-4 8-3z"></path><path d="M4 12l8 4 8-4"></path><path d="M4 17l8 4 8-4"></path></svg>',
+        'Printing': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V4h12v5"></path><rect x="6" y="14" width="12" height="6" rx="2"></rect><path d="M6 12H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1"></path></svg>'
+      };
+      return `
+        ${topBar('Administrator Dashboard', 'Review print jobs, assign machines, and manage AMS track information.', true, `
+          <div class="admin-actions">
+            <button class="btn btn-outline" onclick="downloadCsv()"><span style="display:inline-flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>Export CSV</span></button>
+            <button class="btn btn-danger" onclick="logoutAdmin()"><span style="display:inline-flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>Logout</span></button>
+          </div>
+        `)}
+
+        <div class="stats-grid-wide">
+          ${stats().map(item => `
+            <div class="stat-card">
+              <div class="stat-icon">${adminIconMap[item.title] || ''}</div>
+              <div class="stat-value">${item.value}</div>
+              <div class="stat-label">${item.title}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="search-card">
+          <input value="${escapeHtml(state.search)}" oninput="state.search=this.value; render()" placeholder="Search by work code, name, email, title, studio, machine..." />
+          <select onchange="state.statusFilter=this.value; render()">
+            <option value="all" ${state.statusFilter==='all'?'selected':''}>All statuses</option>
+            ${STATUS_OPTIONS.map(s => `<option value="${s}" ${state.statusFilter===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+
+        <div class="job-list">
+          ${filteredJobs().length ? filteredJobs().map(renderAdminJobCard).join('') : `<div class="card" style="padding:32px; text-align:center; color: var(--muted);">No jobs match the current search or filter.</div>`}
+        </div>
+
+        ${renderExportModal()}
+      `;
+    }
+
+    function renderAdminJobCard(job) {
+      const tasks = getJobTasks(job);
+      const taskMachines = tasks.map(task => task.printerType ? `${task.printerType} #${task.printerNumber || '—'}` : '').filter(Boolean);
+      const taskTracks = tasks.map(task => task.amsTrack || '').filter(Boolean);
+      const machineSummary = taskMachines.length === 0 ? '—' : new Set(taskMachines).size === 1 ? taskMachines[0] : 'Multiple';
+      const trackSummary = taskTracks.length === 0 ? '—' : new Set(taskTracks).size === 1 ? taskTracks[0] : 'Multiple';
+      return `
+        <div class="job-card">
+          <div class="job-top">
+            <div style="min-width:0; flex:1;">
+              <div class="job-badges" style="align-items:flex-start; flex-direction:column; gap:8px;">
+                <div style="display:grid; gap:4px;">
+                  ${tasks.map(task => `<div class="job-title">${escapeHtml(task.title || 'Untitled Task')}</div>`).join('')}
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                  <span class="badge secondary">${escapeHtml(job.status)}</span>
+                  <span class="badge outline">${escapeHtml(job.id)}</span>
+                </div>
+              </div>
+              <div class="job-grid">
+                <div><strong>Name:</strong> ${escapeHtml(job.name)}</div>
+                <div><strong>Email:</strong> ${escapeHtml(job.email)}</div>
+                <div><strong>Studio:</strong> ${escapeHtml(job.studio)}</div>
+                <div><strong>Filament:</strong> ${escapeHtml(job.filamentOwner)}</div>
+                <div><strong>Machine:</strong> ${escapeHtml(machineSummary)}</div>
+                <div><strong>AMS Track:</strong> ${escapeHtml(trackSummary)}</div>
+              </div>
+              <div class="job-note"><strong>Notes:</strong> ${escapeHtml(job.notes || 'None')}</div>
+              <div style="margin-top:12px; display:grid; gap:10px;">
+                ${tasks.map((task, index) => `
+                  <div style="border-radius:16px; background:#f8fafc; padding:12px 14px; border:1px solid #e2e8f0;">
+                    <div style="font-weight:700; color:#0f172a; margin-bottom:6px;">Task ${index + 1}: ${escapeHtml(task.title || 'Untitled Task')}</div>
+                    ${task.notes ? `<div style="font-size:14px; color:#475569; margin-bottom:6px;"><strong>Task Notes:</strong> ${escapeHtml(task.notes)}</div>` : ''}
+                    <div style="font-size:14px; color:#475569;"><strong>Status:</strong> ${escapeHtml(task.status || job.status || 'Submitted')}</div>
+                    <div style="font-size:14px; color:#475569;"><strong>Machine:</strong> ${task.printerType ? `${escapeHtml(task.printerType)} #${escapeHtml(task.printerNumber || '—')}` : 'Not assigned yet'}</div>
+                    <div style="font-size:14px; color:#475569;"><strong>AMS Track:</strong> ${escapeHtml(task.amsTrack || 'Not assigned yet')}</div>
+                    <div style="font-size:14px; color:#475569;"><strong>Estimated Time:</strong> ${escapeHtml(task.estimatedTime || 'Not set yet')}</div>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="job-date">Submitted: ${formatDate(job.submittedAt)}</div>
+            </div>
+            <div class="job-actions">
+              <button class="btn btn-outline" onclick="state.manageJobId='${job.id}'; render();"><span style="display:inline-flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path d="M8 12h8"></path><path d="M16.5 7.5l-5 3"></path><path d="M11.5 14.5l5 3"></path></svg>Manage Job</span></button>
+              <button class="btn btn-danger" onclick="state.deleteJobId='${job.id}'; render();">Delete</button>
+            </div>
+          </div>
+
+          ${state.manageJobId === job.id ? `
+            <div style="margin-top:16px;" class="message-box">
+              <div class="section-title" style="font-size:18px; margin-bottom:10px;">Manage ${escapeHtml(job.id)}</div>
+              <div style="display:grid; gap:12px;" data-manage-job="${job.id}">
+                ${tasks.map((task, index) => `
+                  <div style="border-radius:16px; background:white; padding:14px; border:1px solid #dbe4ef;" data-task-index="${index}">
+                    <div class="section-title" style="font-size:15px; margin-bottom:10px; color:#0f172a;">Task ${index + 1}: ${escapeHtml(task.title || 'Untitled Task')}</div>
+                    <div class="field"><label>Status</label>
+                      <select data-field="status">
+                        ${STATUS_OPTIONS.map(s => `<option value="${s}" ${(task.status || job.status)===s?'selected':''}>${s}</option>`).join('')}
+                      </select>
+                    </div>
+                    <div class="row-2">
+                      <div class="field"><label>Printer Type</label>
+                        <select data-field="printerType">
+                          <option value="unassigned-type" ${!task.printerType?'selected':''}>Unassigned</option>
+                          <option value="X1C" ${task.printerType==='X1C'?'selected':''}>X1C</option>
+                          <option value="H2D" ${task.printerType==='H2D'?'selected':''}>H2D</option>
+                        </select>
+                      </div>
+                      <div class="field"><label>Printer Number</label>
+                        <input data-field="printerNumber" type="number" min="1" max="${task.printerType === 'H2D' ? H2D_TOTAL : X1C_TOTAL}" value="${escapeHtml(task.printerNumber || '')}" placeholder="${task.printerType === 'H2D' ? `1-${H2D_TOTAL}` : `1-${X1C_TOTAL}`}" />
+                      </div>
+                    </div>
+                    <div class="field"><label>AMS Track</label>
+                      <select data-field="amsTrack">
+                        <option value="unassigned-track" ${!task.amsTrack?'selected':''}>Unassigned</option>
+                        ${AMS_TRACK_OPTIONS.map(t => `<option value="${t}" ${task.amsTrack===t?'selected':''}>${t}</option>`).join('')}
+                      </select>
+                    </div>
+                    <div class="field"><label>Estimated Print Time</label>
+                      <input data-field="estimatedTime" value="${escapeHtml(task.estimatedTime || '')}" placeholder="e.g. 3h 20m" />
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+              <button class="btn btn-outline" style="margin-top:12px;" onclick="saveManagedJob('${job.id}')">Finished</button>
+            </div>
+          ` : ''}
+
+          ${state.deleteJobId === job.id ? `
+            <div style="margin-top:16px;" class="message-box">
+              <div class="section-title" style="font-size:18px; margin-bottom:8px;">Delete ${escapeHtml(job.id)}?</div>
+              <div class="section-subtitle" style="margin-bottom:14px;">This will permanently remove the print job from the dashboard. Use this for canceled jobs or incorrect submissions.</div>
+              <div class="modal-actions">
+                <button class="btn btn-danger" onclick="deleteJob('${job.id}')">Confirm Delete</button>
+                <button class="btn btn-outline" onclick="state.deleteJobId=null; render();">Cancel</button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderInfo() {
+      return `
+        ${topBar('Printer Data & Lab Information', 'Basic printer data, machine counts, and lab policies for student reference.', true)}
+
+        <div class="tabs">
+          <button class="tab-btn ${state.infoTab==='printers' ? 'active' : ''}" onclick="state.infoTab='printers'; render();">Printers</button>
+          <button class="tab-btn ${state.infoTab==='rules' ? 'active' : ''}" onclick="state.infoTab='rules'; render();">Rules</button>
+        </div>
+
+        ${state.infoTab === 'printers' ? renderPrintersTab() : renderRulesTab()}
+      `;
+    }
+
+    function renderPrintersTab() {
+      return `
+        ${printerInfo.map(item => `
+          <div class="printer-card">
+            <div class="printer-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 9V4h12v5"></path>
+                <rect x="6" y="14" width="12" height="6" rx="2"></rect>
+                <path d="M6 12H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1"></path>
+              </svg>
+            </div>
+            <div class="printer-name">${escapeHtml(item.name)}</div>
+            ${item.type ? `<div style="margin-top:4px; font-size:12px; text-transform:uppercase; letter-spacing:0.16em; color:${'var(--muted)'};">${escapeHtml(item.type)}</div>` : ''}
+            <div class="printer-detail">${escapeHtml(item.detail)}</div>
+            <div class="printer-size">${escapeHtml(item.size)}</div>
+          </div>
+        `).join('')}
+
+        <div class="card" style="padding:20px; border-radius:24px;">
+          <div class="section-title" style="font-size:20px; margin-bottom:6px;">Current Machine Overview</div>
+          <div class="section-subtitle">These numbers reflect active jobs with a machine assignment.</div>
+          <div class="occ-grid" style="margin-top:16px;">
+            <div class="occ-box">
+              <div class="stat-icon" style="margin-bottom:10px; width:38px; height:38px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V4h12v5"></path><rect x="6" y="14" width="12" height="6" rx="2"></rect><path d="M6 12H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1"></path></svg>
+              </div>
+              <div class="occ-value">X1C: ${machinesInUse('X1C')}/${X1C_TOTAL}</div>
+              <div class="occ-label">Installed machine count: ${X1C_TOTAL}</div>
+            </div>
+            <div class="occ-box">
+              <div class="stat-icon" style="margin-bottom:10px; width:38px; height:38px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V4h12v5"></path><rect x="6" y="14" width="12" height="6" rx="2"></rect><path d="M6 12H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-1"></path></svg>
+              </div>
+              <div class="occ-value">H2D: ${machinesInUse('H2D')}/${H2D_TOTAL}</div>
+              <div class="occ-label">Installed machine count: ${H2D_TOTAL}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRulesTab() {
+      return `
+        <div class="rules-card">
+          <div class="rules-text">
+            ${labRules.map(rule => `<p>${escapeHtml(rule)}</p>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderQrModal(qrImage) {
+      return `
+        <div class="modal ${state.qrOpen ? 'open' : ''}" onclick="if(event.target===this){state.qrOpen=false; render();}">
+          <div class="modal-card">
+            <div class="modal-title">Lab QR Code</div>
+            <div class="modal-desc">Scan this code to open the current page on a mobile device.</div>
+            <div style="display:flex; justify-content:center; padding:6px 0 10px;">
+              <div style="background:white; padding:16px; border-radius:22px; box-shadow: var(--shadow);">
+                <img src="${qrImage}" alt="QR code for current page" style="width:220px; height:220px; border-radius:18px; border:1px solid #E6E0C8; background:white;" />
+              </div>
+            </div>
+            <div class="message-box" style="text-align:center; word-break: break-all;">${escapeHtml(location.href)}</div>
+            <div class="modal-actions">
+              <button class="btn btn-outline" onclick="state.qrOpen=false; render();">Close</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderExportModal() {
+      return `
+        <div class="modal ${state.exportOpen ? 'open' : ''}" onclick="if(event.target===this){state.exportOpen=false; render();}">
+          <div class="modal-card">
+            <div class="modal-title">Exported CSV</div>
+            <div class="modal-desc">If file download is blocked in preview, copy the CSV content below.</div>
+            <pre class="csv-box">${escapeHtml(state.exportText)}</pre>
+            <div class="modal-actions">
+              <button class="btn btn-primary" onclick="copyText(state.exportText, 'CSV content copied.')"><span style="display:inline-flex;align-items:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy CSV</span></button>
+              <button class="btn btn-outline" onclick="state.exportOpen=false; render();">Close</button>
+            </div>
+            ${state.message ? `<div style="margin-top:12px;" class="message-box">${escapeHtml(state.message)}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+      const wide = state.page === 'admin';
+      let html = `<div class="app ${wide ? 'app-wide' : ''}">`;
+      if (state.page === 'home') html += renderHome();
+      if (state.page === 'student') html += renderStudent();
+      if (state.page === 'student-success') html += renderStudentSuccess();
+      if (state.page === 'admin-login') html += renderAdminLogin();
+      if (state.page === 'admin') html += renderAdmin();
+      if (state.page === 'info') html += renderInfo();
+      html += `</div>`;
+      app.innerHTML = html;
+    }
+
+    try {
+      render();
+    } catch (error) {
+      document.body.innerHTML = `<pre style="white-space:pre-wrap;padding:16px;background:#fff1f2;color:#9f1239;font:14px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;">Render failed:
+${String(error && error.message ? error.message : error)}</pre>`;
+    }
+  </script>
+</body>
+</html>
