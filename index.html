@@ -390,6 +390,9 @@
       background: var(--soft);
       color: var(--navy);
       font-size: 18px;
+      align-items: center;
+      justify-content: center;
+      padding-top: 0;
     }
 
     .section-title {
@@ -860,12 +863,189 @@
       .search-card { grid-template-columns: 1fr; }
       .job-top { flex-direction: column; }
     }
+
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      opacity: 1;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
+    }
+
+    .intro-overlay.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .intro-curtain {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-rows: 1.1fr 1fr 0.95fr 0.9fr;
+      pointer-events: none;
+    }
+
+    .intro-panel {
+      position: relative;
+      background: #08244A;
+      transform: translateY(0);
+    }
+
+    .intro-overlay.is-curtain-reveal .intro-panel.p1 { animation: curtainStripWipe 0.58s cubic-bezier(.22,.61,.36,1) forwards; animation-delay: 0.48s; }
+    .intro-overlay.is-curtain-reveal .intro-panel.p2 { animation: curtainStripWipe 0.58s cubic-bezier(.22,.61,.36,1) forwards; animation-delay: 0.32s; }
+    .intro-overlay.is-curtain-reveal .intro-panel.p3 { animation: curtainStripWipe 0.58s cubic-bezier(.22,.61,.36,1) forwards; animation-delay: 0.16s; }
+    .intro-overlay.is-curtain-reveal .intro-panel.p4 { animation: curtainStripWipe 0.58s cubic-bezier(.22,.61,.36,1) forwards; animation-delay: 0.00s; }
+
+    .intro-stage {
+      position: relative;
+      z-index: 2;
+      width: min(84vw, 560px);
+      height: min(54vw, 300px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .intro-bars {
+      display: none;
+    }
+
+    .intro-copy {
+      position: relative;
+      z-index: 3;
+      text-align: center;
+      color: white;
+      opacity: 0;
+      transform: translateY(8px) scale(0.99);
+      transition: opacity 0.36s ease, transform 0.36s ease;
+      pointer-events: none;
+    }
+
+    .intro-overlay.is-copy-visible .intro-copy {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .intro-overlay.is-copy-fade .intro-copy {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.988);
+    }
+
+    .intro-kicker {
+      margin-bottom: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(179, 163, 105, 0.98);
+    }
+
+    .intro-heading {
+      margin: 0;
+      font-size: clamp(32px, 5.7vw, 52px);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+      font-weight: 800;
+    }
+
+    .intro-subcopy {
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(229, 236, 246, 0.9);
+    }
+
+    @keyframes curtainStripWipe {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(-112%);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .intro-overlay,
+      .intro-copy,
+      .intro-panel {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+
   </style>
 </head>
 <body>
+  
+  <div id="introOverlay" class="intro-overlay" aria-hidden="true">
+    <div class="intro-curtain">
+      <div class="intro-panel p1"></div>
+      <div class="intro-panel p2"></div>
+      <div class="intro-panel p3"></div>
+      <div class="intro-panel p4"></div>
+    </div>
+    <div class="intro-stage">
+      <div class="intro-copy">
+        <div class="intro-kicker">Georgia Tech School of Architecture</div>
+        <h2 class="intro-heading">3D Print Lab</h2>
+        <div class="intro-subcopy">Mobile-first print submission and lab management.</div>
+      </div>
+    </div>
+  </div>
+
   <div id="app"></div>
 
   <script>
+
+    function hideIntroOverlay() {
+      const intro = document.getElementById('introOverlay');
+      if (!intro) return;
+
+      intro.classList.add('is-copy-visible');
+
+      window.setTimeout(() => {
+        intro.classList.add('is-copy-fade');
+      }, 900);
+
+      window.setTimeout(() => {
+        intro.classList.add('is-curtain-reveal');
+      }, 1080);
+
+      window.setTimeout(() => {
+        intro.classList.add('is-hidden');
+      }, 2260);
+
+      window.setTimeout(() => {
+        if (intro && intro.parentNode) intro.parentNode.removeChild(intro);
+      }, 2540);
+    }
+
+    window.addEventListener('load', () => {
+      const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reducedMotion) {
+        window.setTimeout(() => {
+          const intro = document.getElementById('introOverlay');
+          if (intro) intro.parentNode.removeChild(intro);
+        }, 80);
+        return;
+      }
+      window.setTimeout(hideIntroOverlay, 120);
+    });
+
+
     window.addEventListener('error', (event) => {
       document.body.innerHTML = `<pre style="white-space:pre-wrap;padding:16px;background:#fff1f2;color:#9f1239;font:14px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;">Preview error:
 ${String(event.message || 'Unknown error')}
@@ -1014,58 +1194,8 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
     }
 
     function machinesInUse(type) {
-      const activeNumbers = [];
-      state.jobs.forEach(job => {
-        getJobTasks(job).forEach(task => {
-          const status = task.status || job.status || 'Submitted';
-          if (task.printerType === type && task.printerNumber && status === 'Printing') {
-            activeNumbers.push(String(task.printerNumber));
-          }
-        });
-      });
-      return new Set(activeNumbers).size;
-    }
-
-    function getAvailablePrinterNumbers(type, currentJobId, currentTaskIndex, currentValue) {
-      const total = type === 'H2D' ? H2D_TOTAL : X1C_TOTAL;
-      const occupied = new Set();
-      state.jobs.forEach(job => {
-        getJobTasks(job).forEach((task, idx) => {
-          const status = task.status || job.status || 'Submitted';
-          const isCurrentTask = job.id === currentJobId && idx === currentTaskIndex;
-          if (!isCurrentTask && task.printerType === type && task.printerNumber && status === 'Printing') {
-            occupied.add(String(task.printerNumber));
-          }
-        });
-      });
-      const options = [];
-      for (let i = 1; i <= total; i += 1) {
-        const value = String(i);
-        if (!occupied.has(value) || value === String(currentValue || '')) {
-          options.push(value);
-        }
-      }
-      return options;
-    }
-
-    function refreshPrinterNumberOptions(jobId, taskIndex, typeSelect) {
-      const card = typeSelect.closest('[data-task-index]');
-      if (!card) return;
-      const numberSelect = card.querySelector('[data-field="printerNumber"]');
-      if (!numberSelect) return;
-      const selectedType = typeSelect.value === 'unassigned-type' ? '' : typeSelect.value;
-      const currentValue = numberSelect.value || '';
-      if (!selectedType) {
-        numberSelect.innerHTML = '<option value="" selected>Unassigned</option>';
-        return;
-      }
-      const nums = getAvailablePrinterNumbers(selectedType, jobId, taskIndex, currentValue);
-      let html = '<option value="">Unassigned</option>';
-      html += nums.map(num => `<option value="${num}" ${String(currentValue) === String(num) ? 'selected' : ''}>${num}</option>`).join('');
-      numberSelect.innerHTML = html;
-      if (currentValue && !nums.includes(String(currentValue))) {
-        numberSelect.value = '';
-      }
+      const active = state.jobs.filter(j => j.printerType === type && j.printerNumber && ACTIVE_STATUSES.includes(j.status));
+      return new Set(active.map(j => j.printerNumber)).size;
     }
 
     function stats() {
@@ -1661,17 +1791,14 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
                     </div>
                     <div class="row-2">
                       <div class="field"><label>Printer Type</label>
-                        <select data-field="printerType" onchange="refreshPrinterNumberOptions('${job.id}', ${index}, this)">
+                        <select data-field="printerType">
                           <option value="unassigned-type" ${!task.printerType?'selected':''}>Unassigned</option>
                           <option value="X1C" ${task.printerType==='X1C'?'selected':''}>X1C</option>
                           <option value="H2D" ${task.printerType==='H2D'?'selected':''}>H2D</option>
                         </select>
                       </div>
                       <div class="field"><label>Printer Number</label>
-                        <select data-field="printerNumber">
-                          <option value="" ${!task.printerNumber ? 'selected' : ''}>Unassigned</option>
-                          ${(task.printerType ? getAvailablePrinterNumbers(task.printerType, job.id, index, task.printerNumber) : []).map(num => `<option value="${num}" ${String(task.printerNumber || '')===String(num)?'selected':''}>${num}</option>`).join('')}
-                        </select>
+                        <input data-field="printerNumber" type="number" min="1" max="${task.printerType === 'H2D' ? H2D_TOTAL : X1C_TOTAL}" value="${escapeHtml(task.printerNumber || '')}" placeholder="${task.printerType === 'H2D' ? `1-${H2D_TOTAL}` : `1-${X1C_TOTAL}`}" />
                       </div>
                     </div>
                     <div class="field"><label>AMS Track</label>
