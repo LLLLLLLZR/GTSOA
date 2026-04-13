@@ -987,7 +987,7 @@
     }
 
   
-    .pin-toggle {
+        .pin-toggle {
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -998,6 +998,14 @@
       user-select: none;
     }
 
+    .pin-check-wrap {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      flex: 0 0 16px;
+    }
+
     .pin-toggle input {
       width: 16px;
       height: 16px;
@@ -1005,6 +1013,22 @@
       margin: 0;
       border-radius: 50%;
       clip-path: circle(46% at 50% 50%);
+      position: relative;
+      z-index: 2;
+    }
+
+    .pin-check-ring {
+      position: absolute;
+      inset: -2px;
+      border-radius: 999px;
+      border: 2.5px solid var(--navy);
+      pointer-events: none;
+      z-index: 3;
+      opacity: 1;
+    }
+
+    .pin-toggle input:checked + .pin-check-ring {
+      opacity: 0;
     }
 
     .job-pin {
@@ -1021,6 +1045,15 @@
       color: var(--gold);
       border: 1px solid rgba(179,163,105,0.28);
       box-shadow: 0 6px 14px rgba(0,48,87,0.08);
+      z-index: 2;
+    }
+
+    .job-card.has-pin .job-top {
+      padding-right: 88px;
+    }
+
+    .job-card.has-pin .job-actions {
+      padding-right: 56px;
     }
 
   </style>
@@ -1865,7 +1898,7 @@ function machinesInUse(type) {
       const machineSummary = taskMachines.length === 0 ? '—' : new Set(taskMachines).size === 1 ? taskMachines[0] : 'Multiple';
       const trackSummary = taskTracks.length === 0 ? '—' : new Set(taskTracks).size === 1 ? taskTracks[0] : 'Multiple';
       return `
-        <div class="job-card" style="position:relative;">
+        <div class="job-card ${job.pinned ? 'has-pin' : ''}" style="position:relative;">
           ${job.pinned ? `<div class="job-pin" title="Pinned job"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.7 5.47 6.03.88-4.36 4.25 1.03 6.01L12 15.77 6.6 18.61l1.03-6.01L3.27 8.35l6.03-.88L12 2z"></path></svg></div>` : ''}
           <div class="job-top">
             <div style="min-width:0; flex:1;">
@@ -1911,7 +1944,7 @@ function machinesInUse(type) {
             <div style="margin-top:16px;" class="message-box">
               <div class="section-title" style="font-size:18px; margin-bottom:10px;">Manage ${escapeHtml(job.id)}</div>
               <div style="margin-bottom:14px;">
-                <label class="pin-toggle"><input type="checkbox" data-job-field="pinned" ${job.pinned ? 'checked' : ''} /> Pin this job on top</label>
+                <label class="pin-toggle"><span class="pin-check-wrap"><input type="checkbox" data-job-field="pinned" ${job.pinned ? 'checked' : ''} /><span class="pin-check-ring" aria-hidden="true"></span></span> Pin this job on top</label>
               </div>
               <div style="display:grid; gap:12px;" data-manage-job="${job.id}">
                 ${tasks.map((task, index) => `
