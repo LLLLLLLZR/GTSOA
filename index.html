@@ -986,6 +986,43 @@
     }
     }
 
+  
+    .pin-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--navy);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pin-toggle input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--gold);
+      margin: 0;
+      border-radius: 50%;
+      clip-path: circle(46% at 50% 50%);
+    }
+
+    .job-pin {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #F3EFE4;
+      color: var(--gold);
+      border: 1px solid rgba(179,163,105,0.28);
+      box-shadow: 0 6px 14px rgba(0,48,87,0.08);
+    }
+
   </style>
 </head>
 <body>
@@ -1072,7 +1109,7 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
       {
         name: 'Bambu H2D',
         type: '',
-        size: 'Build volume: single nozzle 12.8" × 12.6" × 12.8"; dual nozzle 11.8" × 12.6" × 12.8"; total two-nozzle volume 13.8" × 12.6" × 12.8".',
+        size: 'Recommended max model size in current lab policy: no larger than 12.8" × 12.6" × 12.8".',
         detail: 'High-capacity printer for larger or more demanding model jobs depending on lab workflow decisions.',
       }
     ];
@@ -1125,6 +1162,7 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
           printerNumber: '3',
           amsTrack: '1',
           submittedAt: new Date().toISOString(),
+          pinned: false,
         },
         {
           id: 'GT3D-DEMO02',
@@ -1139,6 +1177,7 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
           printerNumber: '2',
           amsTrack: '3',
           submittedAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+          pinned: false,
         },
       ];
       saveJobs();
@@ -1190,12 +1229,100 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
           .filter(Boolean).join(' ').toLowerCase();
         const searchOk = haystack.includes(state.search.toLowerCase());
         return statusOk && searchOk;
+      }).sort((a, b) => {
+        const ap = a.pinned ? 1 : 0;
+        const bp = b.pinned ? 1 : 0;
+        if (bp !== ap) return bp - ap;
+        return new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0);
       });
     }
 
-    function machinesInUse(type) {
-      const active = state.jobs.filter(j => j.printerType === type && j.printerNumber && ACTIVE_STATUSES.includes(j.status));
-      return new Set(active.map(j => j.printerNumber)).size;
+    
+function machinesInUse(type) {
+      const activeNumbers = [];
+      state.jobs.forEach(job => {
+        const tasks = getJobTasks(job);
+        tasks.forEach(task => {
+          const taskStatus = task.status || job.status || 'Submitted';
+          const taskPrinterType = task.printerType || '';
+          const taskPrinterNumber = String(task.printerNumber || '');
+          if (taskPrinterType === type && taskPrinterNumber && ACTIVE_STATUSES.includes(taskStatus)) {
+            activeNumbers.push(`${type}-${taskPrinterNumber}`);
+          }
+        });
+      });
+      return new Set(activeNumbers).size;
+    }
+
+    function getBlockedPrinterNumbers(type, currentJobId, currentTaskIndex) {
+      const blocked = new Set();
+
+      state.jobs.forEach(job => {
+        const tasks = getJobTasks(job);
+        tasks.forEach((task, index) => {
+          const isCurrentTask = job.id === currentJobId && index === currentTaskIndex;
+          const taskStatus = task.status || job.status || 'Submitted';
+          const taskType = task.printerType || '';
+          const taskNumber = String(task.printerNumber || '');
+          if (!isCurrentTask && taskType === type && taskNumber && ACTIVE_STATUSES.includes(taskStatus)) {
+            blocked.add(taskNumber);
+          }
+        });
+      });
+
+      const container = document.querySelector(`[data-manage-job="${currentJobId}"]`);
+      if (container) {
+        const cards = container.querySelectorAll('[data-task-index]');
+        cards.forEach(card => {
+          const index = Number(card.getAttribute('data-task-index'));
+          if (index === currentTaskIndex) return;
+          const status = card.querySelector('[data-field="status"]')?.value || 'Submitted';
+          const printerType = card.querySelector('[data-field="printerType"]')?.value || '';
+          const printerNumber = card.querySelector('[data-field="printerNumber"]')?.value || '';
+          const normalizedType = printerType === 'unassigned-type' ? '' : printerType;
+          if (normalizedType === type && printerNumber && ACTIVE_STATUSES.includes(status)) {
+            blocked.add(String(printerNumber));
+          }
+        });
+      }
+
+      return blocked;
+    }
+
+    function buildPrinterNumberOptions(type, currentJobId, currentTaskIndex, currentValue) {
+      const total = type === 'H2D' ? H2D_TOTAL : X1C_TOTAL;
+      const blocked = getBlockedPrinterNumbers(type, currentJobId, currentTaskIndex);
+      const current = String(currentValue || '');
+      let options = `<option value="" ${!current ? 'selected' : ''}>Unassigned</option>`;
+      for (let i = 1; i <= total; i += 1) {
+        const num = String(i);
+        if (!blocked.has(num) || num === current) {
+          options += `<option value="${num}" ${current === num ? 'selected' : ''}>${num}</option>`;
+        }
+      }
+      return options;
+    }
+
+    function refreshPrinterNumberSelects(jobId) {
+      const container = document.querySelector(`[data-manage-job="${jobId}"]`);
+      if (!container) return;
+      const cards = container.querySelectorAll('[data-task-index]');
+      cards.forEach(card => {
+        const index = Number(card.getAttribute('data-task-index'));
+        const typeSelect = card.querySelector('[data-field="printerType"]');
+        const numberSelect = card.querySelector('[data-field="printerNumber"]');
+        if (!typeSelect || !numberSelect) return;
+        const typeValue = typeSelect.value === 'unassigned-type' ? '' : typeSelect.value;
+        const currentValue = numberSelect.value || '';
+        if (!typeValue) {
+          numberSelect.innerHTML = `<option value="" selected>Unassigned</option>`;
+          return;
+        }
+        numberSelect.innerHTML = buildPrinterNumberOptions(typeValue, jobId, index, currentValue);
+        if (![...numberSelect.options].some(opt => opt.value === currentValue)) {
+          numberSelect.value = '';
+        }
+      });
     }
 
     function stats() {
@@ -1294,7 +1421,7 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
         const tasks = getJobTasks(job).map((task, idx) => idx === taskIndex ? { ...task, ...patch } : task);
         const uniqueStatuses = [...new Set(tasks.map(task => task.status || 'Submitted'))];
         const summaryStatus = uniqueStatuses.length > 1 ? 'Mixed' : uniqueStatuses[0];
-        return { ...job, tasks, status: summaryStatus };
+        return { ...job, tasks, status: summaryStatus, pinned: !!(pinnedInput && pinnedInput.checked) };
       });
       saveJobs();
       render();
@@ -1308,6 +1435,7 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
         return;
       }
       const cards = container.querySelectorAll('[data-task-index]');
+      const pinnedInput = container.parentNode.querySelector('[data-job-field="pinned"]');
       const patches = [];
       cards.forEach(card => {
         const index = Number(card.getAttribute('data-task-index'));
@@ -1327,7 +1455,7 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
         const tasks = getJobTasks(job).map((task, idx) => ({ ...task, ...(patches[idx] || {}) }));
         const uniqueStatuses = [...new Set(tasks.map(task => task.status || 'Submitted'))];
         const summaryStatus = uniqueStatuses.length > 1 ? 'Mixed' : uniqueStatuses[0];
-        return { ...job, tasks, status: summaryStatus };
+        return { ...job, tasks, status: summaryStatus, pinned: !!(pinnedInput && pinnedInput.checked) };
       });
       saveJobs();
       state.manageJobId = null;
@@ -1371,6 +1499,7 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
         printerNumber: '',
         amsTrack: '',
         submittedAt: new Date().toISOString(),
+        pinned: false,
       };
       state.jobs = [job, ...state.jobs];
       saveJobs();
@@ -1736,7 +1865,8 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
       const machineSummary = taskMachines.length === 0 ? '—' : new Set(taskMachines).size === 1 ? taskMachines[0] : 'Multiple';
       const trackSummary = taskTracks.length === 0 ? '—' : new Set(taskTracks).size === 1 ? taskTracks[0] : 'Multiple';
       return `
-        <div class="job-card">
+        <div class="job-card" style="position:relative;">
+          ${job.pinned ? `<div class="job-pin" title="Pinned job"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.7 5.47 6.03.88-4.36 4.25 1.03 6.01L12 15.77 6.6 18.61l1.03-6.01L3.27 8.35l6.03-.88L12 2z"></path></svg></div>` : ''}
           <div class="job-top">
             <div style="min-width:0; flex:1;">
               <div class="job-badges" style="align-items:flex-start; flex-direction:column; gap:8px;">
@@ -1780,25 +1910,30 @@ ${String(event.filename || '')}:${String(event.lineno || '')}:${String(event.col
           ${state.manageJobId === job.id ? `
             <div style="margin-top:16px;" class="message-box">
               <div class="section-title" style="font-size:18px; margin-bottom:10px;">Manage ${escapeHtml(job.id)}</div>
+              <div style="margin-bottom:14px;">
+                <label class="pin-toggle"><input type="checkbox" data-job-field="pinned" ${job.pinned ? 'checked' : ''} /> Pin this job on top</label>
+              </div>
               <div style="display:grid; gap:12px;" data-manage-job="${job.id}">
                 ${tasks.map((task, index) => `
                   <div style="border-radius:16px; background:white; padding:14px; border:1px solid #dbe4ef;" data-task-index="${index}">
                     <div class="section-title" style="font-size:15px; margin-bottom:10px; color:#0f172a;">Task ${index + 1}: ${escapeHtml(task.title || 'Untitled Task')}</div>
                     <div class="field"><label>Status</label>
-                      <select data-field="status">
+                      <select data-field="status" onchange="refreshPrinterNumberSelects('${job.id}')">
                         ${STATUS_OPTIONS.map(s => `<option value="${s}" ${(task.status || job.status)===s?'selected':''}>${s}</option>`).join('')}
                       </select>
                     </div>
                     <div class="row-2">
                       <div class="field"><label>Printer Type</label>
-                        <select data-field="printerType">
+                        <select data-field="printerType" onchange="refreshPrinterNumberSelects('${job.id}')">
                           <option value="unassigned-type" ${!task.printerType?'selected':''}>Unassigned</option>
                           <option value="X1C" ${task.printerType==='X1C'?'selected':''}>X1C</option>
                           <option value="H2D" ${task.printerType==='H2D'?'selected':''}>H2D</option>
                         </select>
                       </div>
                       <div class="field"><label>Printer Number</label>
-                        <input data-field="printerNumber" type="number" min="1" max="${task.printerType === 'H2D' ? H2D_TOTAL : X1C_TOTAL}" value="${escapeHtml(task.printerNumber || '')}" placeholder="${task.printerType === 'H2D' ? `1-${H2D_TOTAL}` : `1-${X1C_TOTAL}`}" />
+                        <select data-field="printerNumber">
+                          ${task.printerType ? buildPrinterNumberOptions(task.printerType, job.id, index, task.printerNumber) : `<option value="" selected>Unassigned</option>`}
+                        </select>
                       </div>
                     </div>
                     <div class="field"><label>AMS Track</label>
